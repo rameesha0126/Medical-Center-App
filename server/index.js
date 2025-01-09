@@ -1,9 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const adminRoutes = require('./routes/adminRoutes');
-const employeeRoutes = require('./routes/employeeRoutes');
-const sharedRoutes = require("./routes/sharedRoutes");
+const express = require("express");;
+const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const authRoute = require("./routes/authRoute");
+const employeeRoutes = require("./routes/employeeRoutes");
+const doctorRoutes = require("./routes/doctorRoutes.js");
 require('dotenv').config();
 
 const app = express();
@@ -12,9 +12,9 @@ const app = express();
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/admin', adminRoutes);
-app.use('/api/employee', employeeRoutes);
-app.use('/api/shared', sharedRoutes); // Routes accessible by both Admin and Employe
+app.use('/api/auth', authRoute);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/doctors', doctorRoutes); // Routes accessible by both Admin and Employe
 
 // Start server
 // const PORT = process.env.PORT || 3000;

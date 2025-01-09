@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose"); 
 
 const channelSchema = new mongoose.Schema({
   patientName: { type: String, required: true },
@@ -12,4 +12,4 @@ const channelSchema = new mongoose.Schema({
   createdBy: { type: String, required: true }, // Manager or Employee name
 });
 
-module.exports = mongoose.model('Channel', channelSchema);
+module.exports = mongoose.model("Channel", channelSchema);

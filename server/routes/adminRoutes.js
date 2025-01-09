@@ -99,7 +99,7 @@ router.put("/doctors/:id", authenticateToken, authorizeRole("Admin"), async (req
 // Delete a doctor
 router.delete('/doctors/:id', authenticateToken, authorizeRole('Admin'), (req, res) => {
     const { id } = req.params;
-    const index = doctors.findIndex(doc => doc.id === parseInt(id));
+    const index = Doctor.findIndex(doc => doc.id === parseInt(id));
 
     if (index === -1) {
         return res.status(404).json({ message: 'Doctor not found' });
