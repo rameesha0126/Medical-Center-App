@@ -38,7 +38,7 @@ const logout = (req, res) => {
 const viewDoctors = async (req, res) => {
     try {
         const doctors = await Doctor.find()
-            .populate("doctorName", "channelNo")
+            .populate("name specialty fee nextDate")
             .sort({ specialty: 1 });
         res.status(200).json(doctors);
     } catch (error) {
@@ -49,9 +49,10 @@ const viewDoctors = async (req, res) => {
 // addChannel controller 
 const addChannel = async (req, res) => {
     try {
-        const { patientName, contactNo, doctorId, paymentStatus } = req.body;
+        const { patientName, contactNo, paymentStatus } = req.body;
 
-        // Fetch the doctor details 
+        // Fetch the doctor details
+        const doctorId = req.params.doctorId;
         const doctor = await Doctor.findById(doctorId); 
         if (!doctor) {
             return res.status(404).json({ message: "Doctor not found" });
@@ -61,17 +62,17 @@ const addChannel = async (req, res) => {
         const channel = new Channel({
             patientName, 
             contactNo, 
-            doctor: doctorId, 
+            doctor: doctor._id, 
             channelDate: doctor.nextDate, 
             channelFee: doctor.fee, 
             channelNo: doctor.channelList.length, 
             paymentStatus, 
-            createdDate, 
+            createdDate: Date.now(), 
             createdBy: req.user.username,
         });
 
         await channel.save();
-        //doctor.channelList.push(channel); 
+        doctor.channelList.push(channel._id); 
         // add channelInvoice logic
         res.status(201).json({ message: "Channel added successfully", channel });
     } catch (error) {
@@ -82,9 +83,11 @@ const addChannel = async (req, res) => {
 // viewChannels controller 
 const viewChannels = async (req, res) => {
     try {
-        const channels = await Channel.find()
-            .populate("channelNo", "patientName", "contactNo", "paymentStatus")
-            .sort({ channelNo: 1 });
+        const channels = await Channel.find({
+            doctor: { $elemMatch: { doctor: req.params.doctorId } }
+        })
+            .populate("patientName contactNo paymentStatus")
+            .sort({ patientName: 1 });
         res.status(400).json(channels);
     } catch (error) {
         res.status(400).json({ message: "Error fetching channels", error: error.message });
