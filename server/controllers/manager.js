@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const Employee = require("../models/Employee"); 
 const Doctor = require("../models/Doctor");
+const ChannelInvoice = require('../models/ChannelInvoice');
 
 // createEmployee controller
 const createEmployee = async (req, res) => {
@@ -51,29 +52,13 @@ const deleteEmployee = async (req, res) => {
     }
 }; 
 
-// addDoctor controller 
-const addDoctor = async (req, res) => {
+// "/api/invoices", authenticateToken, viewChannelInvoices 
+const viewChannelInvoices = async (req, res) => {
     try {
-        const { name, specialty, fee, slots, nextDate } = req.body;
-        const doctor = new Doctor({ name, specialty, fee, slots, nextDate });
-        await doctor.save();
-        res.status(201).json({ message: "Doctor added successfully", doctor });
+        const channelInvoices = await ChannelInvoice.find();
+        res.status(200).json(channelInvoices);
     } catch (error) {
-        res.status(400).json({ message: "Error adding doctor", error: error.message });
-    }
-}; 
-
-// deleteDoctor controller 
-const deleteDoctor = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const doctor = await Doctor.findByIdAndDelete(id); 
-        if (!doctor) {
-            return res.status(404).json({ message: "Doctor not found" });
-        }
-        res.status(200).json({ message: "Doctor deleted successfully" });
-    } catch (error) {
-        res.status(400).json({ message: "Error deleting doctor", error: error.message });
+        res.status(400).json({ message: "Error fetching invoices" });
     }
 };
 
@@ -90,6 +75,5 @@ module.exports = {
     createEmployee, 
     viewEmployees, 
     deleteEmployee, 
-    addDoctor, 
-    deleteDoctor,
+    viewChannelInvoices,
 };

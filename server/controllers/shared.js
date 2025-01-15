@@ -46,53 +46,91 @@ const viewDoctors = async (req, res) => {
     }
 };
 
+// editDoctor 
+const editDoctor = async (req, res) => {
+    try {
+        const { id } = req.params; 
+        const updates = req.body;
+
+        const doctor = await Doctor.findByIdAndUpdate(id, updates, { new: true }); 
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        res.status(200).json({ message: "Doctor updated successfully", doctor });
+    } catch (error) {
+        res.status(400).json({ message: "Error updating doctor", error: error.message });
+    }
+};
+
 // addChannel controller 
 const addChannel = async (req, res) => {
     try {
-        const { patientName, contactNo, paymentStatus } = req.body;
+        const { patientName, contactNo, doctorId } = req.body;
 
-        // Fetch the doctor details
-        const doctorId = req.params.doctorId;
-        const doctor = await Doctor.findById(doctorId); 
+        // Find the doctor by ID 
+        const doctor = await Doctor.findById(doctorId);
         if (!doctor) {
             return res.status(404).json({ message: "Doctor not found" });
         }
 
-        // Use doctor's nextDate, fee and channel number for the channel 
-        const channel = new Channel({
+        // validate available slots 
+        if (doctor.slots <= 0) {
+            return res.status(400).json({ message: "No available slots for this doctor" });
+        }
+
+        // Determine channel number 
+        const channelNo = doctor.channelList.length + 1;
+
+        // Create a new channel 
+        const newChannel = new Channel({
             patientName, 
             contactNo, 
             doctor: doctor._id, 
             channelDate: doctor.nextDate, 
             channelFee: doctor.fee, 
-            channelNo: doctor.channelList.length, 
-            paymentStatus, 
-            createdDate: Date.now(), 
+            channelNo,  
             createdBy: req.user.username,
         });
 
-        await channel.save();
-        doctor.channelList.push(channel._id); 
+        await newChannel.save();
+
+        // Update doctor's channel list and decrement slots 
+        doctor.channelList.push(newChannel);
+        doctor.slots -= 1;
+        await doctor.save(); 
         // add channelInvoice logic
-        res.status(201).json({ message: "Channel added successfully", channel });
+        res.status(201).json({ message: "Channel added successfully", newChannel });
     } catch (error) {
-        res.status(400).json({ message: "Error creating channel", error: error.message });
+        res.status(500).json({ message: "Error creating channel", error: error.message });
     }
 }; 
 
-// viewChannels controller 
-const viewChannels = async (req, res) => {
+// viewChannelsByDoctor controller 
+const viewChannelsByDoctor = async (req, res) => {
     try {
-        const channels = await Channel.find({
-            doctor: { $elemMatch: { doctor: req.params.doctorId } }
-        })
-            .populate("patientName contactNo paymentStatus")
-            .sort({ patientName: 1 });
-        res.status(400).json(channels);
+        const { doctorId } = req.params; 
+
+        // Validate doctor ID 
+        const doctor = await Doctor.findById(doctorId); 
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        
+        // Find channels for the given doctor ID 
+        const channels = await Channel.find({ doctor: doctorId })
+            .populate("channelNo", "patientName contactNo paymentStatus") //Include patient details 
+            .sort({ channelNo: 1 }); // Sort by channel date 
+
+        // Check if there are no channels 
+        if (channels.length === 0) {
+            return res.status(200).json({ message: "No channels found for this doctor" });
+        }
+
+        res.status(200).json(channels);
     } catch (error) {
-        res.status(400).json({ message: "Error fetching channels", error: error.message });
+        res.status(500).json({ message: "Error fetching channels", error: error.message });
     }
-}; 
+};
 
 // editChannel controller 
 const editChannel = async (req, res) => {
@@ -114,14 +152,7 @@ const editChannel = async (req, res) => {
 // deleteChannel controller 
 const deleteChannel = async () => {};
 
-// createChannelInvoice controller 
-const createChannelInvoice = async () => {}; 
-
 module.exports = {
     login, 
     logout, 
-    viewDoctors, 
-    addChannel, 
-    viewChannels, 
-    editChannel,
 };

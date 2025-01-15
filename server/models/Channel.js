@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const channelSchema = new mongoose.Schema({
   patientName: { type: String, required: true },
-  contactNo: { type: Number, required: true },
+  contactNo: { type: String, required: true },
   doctor: { 
     type: mongoose.Schema.Types.ObjectId, // Reference to the Doctor model
     ref: 'Doctor', // The name of the model being referenced

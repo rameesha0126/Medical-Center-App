@@ -1,22 +1,32 @@
 const express = require("express"); 
 const { authenticateToken, authorizeRole } = require("../middleware/authMiddleware.js");
-const { addChannel, editChannel, viewChannels, viewDoctors } = require("../controllers/shared.js");
-const { addDoctor, deleteDoctor } = require("../controllers/manager.js");
+const { addDoctor, viewDoctors, viewDoctorById, editDoctorById, deleteDoctorById, addChannelByDoctorId } = require("../controllers/doctorControllers.js");
 
 const router = express.Router(); 
 
-// READ
+// Add doctor 
+router.post("/", authenticateToken, authorizeRole("manager"), addDoctor);
+
+// view doctors 
 router.get("/", authenticateToken, viewDoctors); 
-router.get("/:doctorId/channels", authenticateToken, viewChannels);
+router.get("/:doctorId", authenticateToken, viewDoctorById); 
 
-// CREATE 
-router.post("/", authenticateToken, authorizeRole('manager'), addDoctor);
-router.post("/:doctorId/channels", authenticateToken, addChannel); 
+// edit doctors 
+router.put("/:doctorId", authenticateToken, editDoctorById); 
 
-// UPDATE
-router.put("/:doctorId/channels/:channelId", authenticateToken, editChannel); 
+// delete doctors 
+router.put("/:doctorId", authenticateToken, deleteDoctorById); 
 
-// DELETE 
-router.delete("/:doctorId", authenticateToken, authorizeRole('manager'), deleteDoctor);
+// add channels by doctor 
+router.post("/:doctorId", authenticateToken, addChannelByDoctorId);
 
-module.exports = router;
+module.exports = router; 
+
+// router.post("/api/doctors/", authenticateToken, authorizeRole("manager"), addDoctor); 
+// router.get("/api/doctors/", authenticateToken, viewDoctors);
+// router.put("/api/doctors/:doctorId", authenticateToken, editDoctor);
+// router.delete("/api/doctors/:doctorId", authenticateToken, authorizeRole("manager"), deleteDoctor);
+// router.get("/api/doctors/:doctorId/", authenticateToken, viewChannelsByDoctor);
+// router.post("/api/doctors/:doctorId/", authenticateToken, addChannelByDoctor);
+// router.put("/api/doctors/:doctorId/:channelId/", authenticateToken, editChannelByDoctor);
+// router.delete("/api/doctors/:doctorId/", authenticateToken, deleteChannelByDoctor);

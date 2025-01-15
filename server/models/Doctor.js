@@ -6,8 +6,9 @@ const doctorSchema = new mongoose.Schema({
   fee: { type: Number, required: true }, 
   slots: { type: Number, default: 100},
   nextDate: { type: Date, required: true }, 
-  //toPay: { type: Number, required: true }, 
-  channelList: [],
+  channelList: [], 
+  paidChannelList: [],
+  toPay: { type: Number }, 
 });
 
 module.exports = mongoose.model("Doctor", doctorSchema);
